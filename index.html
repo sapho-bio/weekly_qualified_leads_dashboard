@@ -157,6 +157,7 @@ tr.wk.empty td { color: var(--ink-3); font-style: italic; }
 .tier.q { background: var(--mint); border-color: var(--mint); color: var(--mint-ink); font-weight: 600; }
 .tier.w { border-color: var(--ink-3); color: var(--ink); }
 .tier.p { border-style: dashed; color: var(--ink-3); }
+.tier.i { border-color: var(--ink-3); color: var(--ink); background: var(--mint-soft); }
 .tier.u { border-style: dotted; border-color: var(--ink-3); color: var(--ink); background: var(--mint-soft); white-space: normal; }
 .fi { display: flex; flex-direction: column; gap: 2px; font-family: var(--font-mono); font-size: 11.5px; white-space: nowrap; }
 .lv { color: var(--ink-3); }
@@ -164,10 +165,13 @@ tr.wk.empty td { color: var(--ink-3); font-style: italic; }
 .lv-medium { color: var(--ink-2); }
 .hs { display: inline-block; font-size: 12px; border-radius: 999px; padding: 2px 10px; border: 1px solid var(--line); color: var(--ink-2); white-space: nowrap; }
 .hs-client { background: var(--warn-bg); border-color: var(--warn-bg); color: var(--warn-ink); font-weight: 600; }
+.hs-qual { border-color: var(--mint); color: var(--ink); }
 .hs-quote { border-color: var(--warn-bg); color: var(--ink); }
 .hs-nurture, .hs-lead { color: var(--ink); }
 .hs-maybe { border-style: dashed; color: var(--ink); }
 .hs-none, .hs-na { color: var(--ink-3); border-color: transparent; padding-left: 0; }
+.period { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; color: var(--ink); font-family: var(--font-mono); font-size: 12px; max-width: 100%; }
+.live-ok { color: var(--mint); }
 .selects { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
 .selects label { display: flex; gap: 8px; align-items: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
 .sel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; color: var(--ink); font-size: 13px; letter-spacing: 0; text-transform: none; font-family: var(--font-body); max-width: 100%; }
@@ -194,10 +198,11 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
     <div>
       <div class="brand"><i></i>SaphoBio &nbsp;/&nbsp; Growth</div>
       <h1>Weekly Qualified Leads</h1>
-      <p class="sub">Every contact from the last two months who stated a testing need or asked for a call, quote or RFP. Sources: HubSpot ticker in Slack, CCH (DC) and PepMed notes in Notion, Peptides for Women, X DMs, scanned business cards and a HubSpot cross-check.</p>
+      <p class="sub">Contacts who stated a testing need or asked for a call, quote or RFP, in three-month reporting periods. HubSpot supplies the live feed every week. Conference, event, X DM and business-card leads are logged by hand until they are entered in HubSpot.</p>
+      <p class="mono" id="liveStatus" style="font-size:12px;color:var(--ink-3);margin:8px 0 0">Checking the HubSpot feed...</p>
     </div>
     <div class="top-actions">
-      <span class="mono" style="font-size:12px;color:var(--ink-3)">Aug 1 to Oct 1, 2026</span>
+      <select id="periodSel" class="period" aria-label="Reporting period"></select>
       <button class="theme-btn" id="themeBtn" type="button">Light mode</button>
     </div>
   </header>
@@ -207,7 +212,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
     <div class="stat"><span class="num" id="sW">0</span><span class="lbl">Warm</span><span class="def">Met and positive, need not yet confirmed</span></div>
     <div class="stat"><span class="num" id="sP">0</span><span class="lbl">Partners and intros</span><span class="def">Podcast guests, connectors, peer labs</span></div>
     <div class="stat"><span class="num" id="sU">0</span><span class="lbl">Card, status unknown</span><span class="def">Business card in hand, no earlier lead record</span></div>
-    <div class="stat"><span class="num" id="sL">0</span><span class="lbl">Qualified in last 14 days</span><span class="def">Since Sep 17, 2026</span></div>
+    <div class="stat"><span class="num" id="sL">0</span><span class="lbl">Qualified in last 14 days</span><span class="def" id="sLd">Last 14 days</span></div>
     <div class="stat"><span class="num" id="sH">0</span><span class="lbl">Already clients in HubSpot</span><span class="def">Listed here as leads; company is an active client</span></div>
   </section>
 
@@ -217,7 +222,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
         <h2>Leads by week</h2>
         <p class="hint" id="chartHint"></p>
       </div>
-      <div class="chart-wrap"><svg id="chart" role="img" aria-label="Stacked bars of leads per week, colored by source" viewBox="0 0 640 250" width="100%" height="auto" style="min-width:520px"></svg></div>
+      <div class="chart-wrap"><svg id="chart" role="img" aria-label="Stacked bars of leads per week, colored by source" viewBox="0 0 640 250" width="100%" style="min-width:520px"></svg></div>
       <div class="legend" id="legend"></div>
     </div>
     <div class="panel">
@@ -226,7 +231,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
         <p class="hint" id="mixHint"></p>
       </div>
       <div class="mix" id="mix"></div>
-      <p class="mix-note">Sales outreach and Video show zero because nothing from those channels was logged in the sources above during this window.</p>
+      <p class="mix-note">Sources with no leads in this period show zero. Video is not tracked in HubSpot yet, so it only appears when a lead is logged by hand.</p>
     </div>
   </section>
 
@@ -249,7 +254,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
 
   <section class="notes">
     <div class="panel">
-      <h3>Reviewed and left out</h3>
+      <h3>Reviewed and left out (Aug to Oct 2026, hand-logged leads)</h3>
       <ul>
         <li><b>Investor and vendor pitches (5):</b> DeltaOne SA (Aug 15), Pembal Holdings (Sep 22), TurboJot (Sep 12), attendee-list seller (Sep 5), freelance writer Hannah Melotto (Aug 28 and Sep 22).</li>
         <li><b>Invoice-payment message (1):</b> Kleptra, John (Sep 28). The message asks about an unpaid invoice and does not mention testing, although the form ticked potency.</li>
@@ -261,6 +266,8 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
     <div class="panel">
       <h3>Data notes</h3>
       <ul>
+        <li><b>Live HubSpot feed:</b> rows marked "HubSpot (live)" come from HubSpot each Monday. A contact counts as Qualified when its lifecycle stage is Qualified Lead, Scientist Review, Building Quote, Quote Issued, Account Created or Active Client, dated by the day it entered that stage. A new web-form contact still at the Lead stage appears as New inbound. Cold imported contacts are left out. The rules live in config.json.</li>
+        <li><b>Periods:</b> reporting periods run in three-month blocks starting Aug 1, 2026 (Aug to Oct, Nov to Jan, and so on). The newest block opens automatically.</li>
         <li><b>Undated X leads:</b> Regenerative Research and Peptide Critic have no date in the X DM slide. Dates marked with a tilde for the other X leads come from the day their first Lab/Sales ticket was logged.</li>
         <li><b>Names not recorded:</b> READY, Rebody Health, Thaeta Scientific, Curexa and the Bordeaux's pharmacy contacts have no full contact name in the notes.</li>
         <li><b>Source calls:</b> Inbound forms with a Google, Bing or DuckDuckGo referrer are Website organic. Metro Meds had no referrer, so it is also Website organic. The Sep 9 Dunivant lead is Website ad because Pavel confirmed it in the Slack thread.</li>
@@ -286,7 +293,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
     video:    { label: 'Video',           cls: '--src-video' },
     other:    { label: 'Other (X, ads, newsletter)', short: 'Other', cls: '--src-other' }
   };
-  var TIER = { q: 'Qualified', w: 'Warm', p: 'Partner / intro', u: 'Card, status unknown' };
+  var TIER = { q: 'Qualified', i: 'New inbound', w: 'Warm', p: 'Partner / intro', u: 'Card, status unknown' };
 
   // d = date (null when not recorded), ap = approximate date
   var L = [
@@ -485,9 +492,9 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
     });
   });
   var SEGS = ['Pharmacy', 'Peptide / RUO brand', 'Biotech / lab company', 'Vendor / platform', 'Physician / influencer / media', 'Advisor / investor / peer', 'Not recorded'];
-  var WHOS = ['Pavel', 'Abraham', 'Pavel + Abraham', 'Web form (HubSpot)'];
-  var HSL = { client: 'Active client', quote: 'Quote issued', nurture: 'Nurture', lead: 'Lead', maybe: 'Possible match', none: 'Not in HubSpot', na: 'Not checked' };
-  var HSORDER = ['client', 'quote', 'nurture', 'lead', 'maybe', 'none', 'na'];
+  var WHOS = ['Pavel', 'Abraham', 'Pavel + Abraham', 'Web form (HubSpot)', 'HubSpot (live)'];
+  var HSL = { qual: 'Qualified (HubSpot)', client: 'Active client', quote: 'Quote issued', nurture: 'Nurture', lead: 'Lead', maybe: 'Possible match', none: 'Not in HubSpot', na: 'Not checked' };
+  var HSORDER = ['qual', 'client', 'quote', 'nurture', 'lead', 'maybe', 'none', 'na'];
 
   var state = { tier: 'q', src: 'all', text: '', open: {}, seg: 'all', who: 'all', hs: 'all' };
   var $ = function (id) { return document.getElementById(id); };
@@ -500,23 +507,56 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
   function srcShort(k) { return SRC[k].short || SRC[k].label; }
   function dot(k) { return '<i class="sw" style="background:' + cv(SRC[k].cls) + '"></i>'; }
 
-  // week list from Aug 3 to Sep 28
-  var weeks = [];
-  (function () { var w = '2026-08-03'; while (w <= '2026-09-28') { weeks.push(w); var x = parse(w); x.setUTCDate(x.getUTCDate() + 7); w = x.toISOString().slice(0, 10); } })();
+  // Reporting periods: consecutive three-month blocks starting Aug 1, 2026. The block containing today is the default.
+  var ANCHOR_YEAR = 2026, ANCHOR_MONTH = 7;
+  function iso(y, m, d) { return new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10); }
+  function longRange(st, en) { return fmt(st) + ' to ' + fmt(en) + ', ' + parse(en).getUTCFullYear(); }
+  var TODAY = new Date().toISOString().slice(0, 10);
+  var periods = [];
+  (function () {
+    for (var i = 0; i < 60; i++) {
+      var st = iso(ANCHOR_YEAR, ANCHOR_MONTH + i * 3, 1), en = iso(ANCHOR_YEAR, ANCHOR_MONTH + i * 3 + 3, 0);
+      if (st > TODAY) break;
+      periods.push({ i: i, start: st, end: en, label: longRange(st, en) });
+    }
+  })();
+  var period = periods[periods.length - 1];
+  function weeksOf(p) {
+    var out = [], w = weekStart(p.start);
+    while (w <= p.end) { out.push(w); var x = parse(w); x.setUTCDate(x.getUTCDate() + 7); w = x.toISOString().slice(0, 10); }
+    return out;
+  }
 
-  function count(t) { return L.filter(function (l) { return l.t === t; }).length; }
+  // All leads: the hand-logged snapshot plus the live HubSpot feed (added after data/hubspot_leads.json loads).
+  var DATA = L.slice();
+  function inPeriod(l) { return l.d ? (l.d >= period.start && l.d <= period.end) : period.i === 0; }
+  function cur() { return DATA.filter(inPeriod); }
+  function addLive(payload) {
+    var known = {};
+    DATA.forEach(function (l) { known[(l.n || '').toLowerCase()] = 1; (l.hsu || '').replace(/\/0-1\/(\d+)/, function (m, id) { known['id' + id] = 1; }); });
+    var added = 0;
+    (payload.leads || []).forEach(function (l) {
+      if (known['id' + l.id] || (!l.na && known[l.n.toLowerCase()])) return;
+      l.who = 'HubSpot (live)'; l.live = true; l.note = ''; l.next = ''; DATA.push(l); added++;
+    });
+    return added;
+  }
+
+  function count(t) { return cur().filter(function (l) { return l.t === t; }).length; }
   function byTier(l) { return state.tier === 'all' || l.t === state.tier; }
 
   function renderStats() {
-    $('sQ').textContent = count('q'); $('sW').textContent = count('w'); $('sP').textContent = count('p'); $('sU').textContent = count('u'); $('sH').textContent = L.filter(function (l) { return l.hs === 'client'; }).length;
-    $('sL').textContent = L.filter(function (l) { return l.t === 'q' && l.d && l.d >= '2026-09-17'; }).length;
+    $('sQ').textContent = count('q'); $('sW').textContent = count('w'); $('sP').textContent = count('p'); $('sU').textContent = count('u'); $('sH').textContent = cur().filter(function (l) { return l.hs === 'client'; }).length;
+    var endD = period.end < TODAY ? period.end : TODAY, c14 = parse(endD); c14.setUTCDate(c14.getUTCDate() - 14); var since14 = c14.toISOString().slice(0, 10);
+    $('sL').textContent = cur().filter(function (l) { return l.t === 'q' && l.d && l.d >= since14; }).length;
+    $('sLd').textContent = 'Since ' + fmt(since14) + ', ' + parse(since14).getUTCFullYear();
   }
 
   function renderChips() {
     var tc = $('tierChips');
     tc.innerHTML = '<span class="grp">Stage</span>';
-    [['q', 'Qualified'], ['w', 'Warm'], ['p', 'Partner / intro'], ['u', 'Card, status unknown'], ['all', 'All']].forEach(function (a) {
-      var n = a[0] === 'all' ? L.length : count(a[0]);
+    [['q', 'Qualified'], ['i', 'New inbound'], ['w', 'Warm'], ['p', 'Partner / intro'], ['u', 'Card, status unknown'], ['all', 'All']].forEach(function (a) {
+      var n = a[0] === 'all' ? cur().length : count(a[0]);
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', state.tier === a[0]);
       b.innerHTML = a[1] + ' <span class="c">' + n + '</span>';
       b.onclick = function () { state.tier = a[0]; renderAll(); };
@@ -527,7 +567,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
     var all = document.createElement('button'); all.type = 'button'; all.className = 'chip'; all.setAttribute('aria-pressed', state.src === 'all'); all.textContent = 'All sources';
     all.onclick = function () { state.src = 'all'; renderAll(); }; sc.appendChild(all);
     Object.keys(SRC).forEach(function (k) {
-      var n = L.filter(function (l) { return l.s === k && byTier(l); }).length;
+      var n = cur().filter(function (l) { return l.s === k && byTier(l); }).length;
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', state.src === k);
       b.innerHTML = (state.src === k ? '' : dot(k)) + srcShort(k) + ' <span class="c">' + n + '</span>';
       b.onclick = function () { state.src = k; renderAll(); };
@@ -536,7 +576,8 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
   }
 
   function renderChart() {
-    var data = L.filter(byTier);
+    var weeks = weeksOf(period);
+    var data = cur().filter(byTier);
     var undated = data.filter(function (l) { return !l.d; }).length;
     $('chartHint').textContent = (state.tier === 'all' ? 'All stages' : (state.tier === 'u' ? 'Business cards with unknown status' : TIER[state.tier] + ' leads')) + ', week starting Monday. ' + (undated ? undated + ' undated lead' + (undated > 1 ? 's' : '') + ' not shown.' : '');
     var per = {}; weeks.forEach(function (w) { per[w] = {}; });
@@ -569,7 +610,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
   }
 
   function renderMix() {
-    var data = L.filter(byTier); var total = data.length || 1;
+    var data = cur().filter(byTier); var total = data.length || 1;
     $('mixHint').textContent = (state.tier === 'all' ? 'All stages' : TIER[state.tier]) + ', ' + data.length + (data.length === 1 ? ' contact' : ' contacts');
     $('mix').innerHTML = Object.keys(SRC).map(function (k) {
       var n = data.filter(function (l) { return l.s === k; }).length;
@@ -632,7 +673,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
   }
 
   function renderRows() {
-    var list = L.map(function (l, i) { l.i = i; return l; }).filter(matches);
+    var list = cur().map(function (l, i) { l.i = l.id ? 'h' + l.id : 'm' + i; return l; }).filter(matches);
     var groups = {};
     list.forEach(function (l) { var k = l.d ? weekStart(l.d) : 'none'; (groups[k] = groups[k] || []).push(l); });
     var order = Object.keys(groups).filter(function (k) { return k !== 'none'; }).sort().reverse();
@@ -661,7 +702,7 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
     });
   }
 
-  function renderAll() { renderChips(); renderChart(); renderMix(); renderRows(); }
+  function renderAll() { renderStats(); renderChips(); renderChart(); renderMix(); renderRows(); }
   $('q').addEventListener('input', function (e) { state.text = e.target.value.trim().toLowerCase(); renderRows(); });
 
   // theme toggle (per-viewer convenience)
@@ -672,7 +713,23 @@ tr.det td { background: var(--bg); padding: 14px 14px 18px 50px; }
   btn.onclick = function () { var n = isDark() ? 'light' : 'dark'; root.setAttribute('data-theme', n); try { localStorage.setItem('sapho-leads-theme', n); } catch (e) {} syncBtn(); };
   syncBtn();
 
-  renderStats(); buildSelects(); renderAll();
+  function buildPeriods() {
+    var sel = $('periodSel');
+    sel.innerHTML = periods.slice().reverse().map(function (p) { return '<option value="' + p.i + '">' + esc(p.label) + (p.i === period.i ? ' (current)' : '') + '</option>'; }).join('');
+    sel.value = String(period.i);
+    sel.onchange = function () { period = periods[+sel.value]; renderAll(); };
+  }
+  function setStatus(msg, ok) { var el = $('liveStatus'); el.textContent = msg; el.className = 'mono' + (ok ? ' live-ok' : ''); el.style.fontSize = '12px'; el.style.margin = '8px 0 0'; if (!ok) el.style.color = 'var(--ink-3)'; }
+
+  buildPeriods(); buildSelects(); renderAll();
+  fetch('data/hubspot_leads.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(function (p) {
+    var n = addLive(p);
+    var when = new Date(p.generatedAt);
+    setStatus('HubSpot feed connected. ' + n + ' live leads added. Last refreshed ' + MON[when.getMonth()] + ' ' + when.getDate() + ', ' + when.getFullYear() + '.', true);
+    renderAll();
+  }).catch(function () {
+    setStatus('HubSpot feed not connected yet. Showing the hand-logged leads only.', false);
+  });
 })();
 </script>
 </body>

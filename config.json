@@ -1,0 +1,19 @@
+{
+  "hubspotPortalId": "242985492",
+  "since": "2026-08-01",
+  "qualifiedStages": {
+    "pain_qualified": "qual",
+    "scientist_review": "qual",
+    "3903361725": "quote",
+    "quote_issued": "quote",
+    "3903361726": "client",
+    "active_client": "client"
+  },
+  "includeInboundLeadStage": true,
+  "useQualifiedLeadSinceProperty": false,
+  "ignoreEmailDomains": [
+    "saphobio.com", "turbojot.com", "melottogroup.com", "deltaone-sa.ch",
+    "pembal-holdings.com", "marketsagehubpro.com", "mkcobuilds.com", "guestpostwolf.com"
+  ],
+  "ignoreLifecycleStages": ["disqualified", "closed_lost"]
+}
