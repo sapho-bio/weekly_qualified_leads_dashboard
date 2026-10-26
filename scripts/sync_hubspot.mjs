@@ -1,6 +1,7 @@
 // Pulls qualified and inbound leads from HubSpot and writes data/hubspot_leads.json.
 // Usage: HUBSPOT_TOKEN=... node scripts/sync_hubspot.mjs
 //        node scripts/sync_hubspot.mjs --fixture path/to/search_results.json   (offline test, no token)
+import './env.mjs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -111,7 +112,7 @@ if (fixtureAt > 0) {
   records = JSON.parse(await readFile(process.argv[fixtureAt + 1], 'utf8')).results;
 } else {
   const token = process.env.HUBSPOT_TOKEN;
-  if (!token) { console.error('HUBSPOT_TOKEN is not set. Add it as a repository secret named HUBSPOT_TOKEN.'); process.exit(2); }
+  if (!token) { console.error('HUBSPOT_TOKEN is not set. Put it in the .env file (local) or in a repository secret named HUBSPOT_TOKEN (GitHub).'); process.exit(2); }
   records = await fetchAll(token);
   owners = await fetchOwners(token);
 }
