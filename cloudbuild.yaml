@@ -1,0 +1,15 @@
+# Runs on push to main (trigger: sapho-infra terraform/aequita/weekly_qualified_leads_dashboard.tf).
+# Builds the image, then rolls the Deployment so it pulls the new :latest.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-t", "gcr.io/aequita/weekly-qualified-leads-dashboard:latest",
+           "-t", "gcr.io/aequita/weekly-qualified-leads-dashboard:$SHORT_SHA", "."]
+  - name: gcr.io/cloud-builders/docker
+    args: ["push", "--all-tags", "gcr.io/aequita/weekly-qualified-leads-dashboard"]
+  - name: gcr.io/cloud-builders/kubectl
+    args: ["rollout", "restart", "deployment/weekly-qualified-leads-dashboard", "-n", "dashboards"]
+    env:
+      - CLOUDSDK_COMPUTE_ZONE=us-west1-b
+      - CLOUDSDK_CONTAINER_CLUSTER=aequita-gke
+options:
+  logging: CLOUD_LOGGING_ONLY
